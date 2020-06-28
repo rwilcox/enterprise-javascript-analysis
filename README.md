@@ -25,7 +25,7 @@ Moose focuses on classes, and not so much on the relationship of packages.
 
 ### Example of generated output
 
-Names blanked for some OpSec.
+Names blanked, and some of the network graph redacted badly with an eraser tool, for some OpSec.
 
 Notice there's a number of somewhat complex dependencies: one of our leaves depends of a leaf which depends on a leaf which depends on a (that center library in the middle). Notice also there's a library that depends on nothing, and no libary depends on it. This in fact matches the use of that module. 
 
