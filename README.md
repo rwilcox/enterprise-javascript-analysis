@@ -31,6 +31,8 @@ Notice there's a number of somewhat complex dependencies: one of our leaves depe
 
 ![](docs/use-hierarchy.png)
 
+_[Code behind the diagram](https://github.com/rwilcox/enterprise-javascript-analysis/blob/master/EnterpriseJavascriptAnalysis/PackageJsonDependencyGraph.class.st#L17)_
+
 Requirements
 =======================================
 
