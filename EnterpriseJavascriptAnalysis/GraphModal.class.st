@@ -21,14 +21,15 @@ Class {
 	#instVars : [
 		'name',
 		'externalRef',
-		'children'
+		'children',
+		'cachedCompositeShape'
 	],
 	#category : #EnterpriseJavascriptAnalysis
 }
 
 { #category : #'instance creation' }
 GraphModal class >> withName: inName [
-	^ GraphModal withName: inName andChildren: nil.
+	^ (self) withName: inName andChildren: nil.
 ]
 
 { #category : #'as yet unclassified' }
@@ -37,10 +38,22 @@ GraphModal class >> withName: inName andChildren: inChildren [
 	"scope: class-variables  &  class-instance-variables"	
 			
 	| out |
-	out := GraphModal new.
+	out := self new.
 	out name: inName.
 	out children: inChildren  .
 	^ out.
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal class >> withName: inName childContext: resultsFromThisBlockWillBeAddedAsChildren [
+	"comment stating purpose of message"
+
+  |out|
+
+  out := (self ) withName: inName.
+  out children: (resultsFromThisBlockWillBeAddedAsChildren value).
+
+  ^out.
 ]
 
 { #category : #'as yet unclassified' }
@@ -50,12 +63,46 @@ GraphModal class >> withName: inName childen: children andExternalRef: exRef [
 			
 	| out |
 	
-   out := GraphModal new.
+   out := self new.
    out name: name
    out children: children.
    out externalRef: exRef.
 
    ^ out.
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal class >> withName: inName make: blockWillBeCalledWithConstructedObject [
+	"comment stating purpose of message"
+
+	| out |
+	out := self withName: inName.
+	
+	blockWillBeCalledWithConstructedObject value: out.
+	^ out.
+
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal >> asRTCompositeShape [
+	| rslabel output outModal box |
+	
+	^ cachedCompositeShape 
+	    ifNotNil: [ cachedCompositeShape  ]
+	    ifNil: [ 	
+			rslabel := RTLabel new text: name yourself.
+	      box := RTBox new.	"extent: rslabel extent + 10;"	"color: (Color white)"
+	      output := RTCompositeShape new.
+	      "output add: box."
+	      output add: rslabel.
+	      output setAutomaticRelayout.
+	      outModal := output elementOn: self.
+	      outModal @ RTDraggable.
+	
+	     cachedCompositeShape := outModal.
+	     cachedCompositeShape.
+	    ].
+
 ]
 
 { #category : #accessing }
@@ -97,19 +144,6 @@ GraphModal >> name: anObject [
 ]
 
 { #category : #'as yet unclassified' }
-GraphModal >> toRSComposite [ 
-	| rslabel box output|
-	
-	rslabel := RSLabel new text: name yourself.
-	box := RSBox new withBorder; extent: rslabel extent + 10.
-	
-	output := RSComposite new draggable;
-	model: self; shapes: {  box. rslabel }.
-	
-    ^output.
-]
-
-{ #category : #'as yet unclassified' }
 GraphModal >> toRSCompositeOnCanvas: canvas [ 
 	| rslabel box output childrenNodes|
 	
@@ -130,4 +164,25 @@ GraphModal >> toRSCompositeOnCanvas: canvas [
 	  	
 	].
   ^output. 
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal >> toRTCompositeOnCanvas: canvas [
+	"version of toRSCompositeOnCanvas but for Roassal2 (not 3)"
+
+	| outModal childrenNodes |
+	"extent: rslabel extent + 10;"
+	"color: (Color white)"
+	"output add: box."
+	outModal := self asRTCompositeShape.
+	canvas add: outModal.
+	self children
+		ifNotNil: [ childrenNodes := self children
+				collect: [ :curr | 
+					| childShape line |
+					childShape := curr toRTCompositeOnCanvas: canvas.
+					line := RTEdge from: outModal to: childShape.
+					line + (RTLine new color: Color black) + RTSimpleArrowHead new.
+					canvas add: line ] ].
+	^ outModal
 ]
