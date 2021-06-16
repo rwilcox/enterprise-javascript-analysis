@@ -200,7 +200,7 @@ GraphModal >> name: anObject [
 
 { #category : #Roassal }
 GraphModal >> toRSCompositeOnCanvas: canvas [
-	^ self toRSCompositeOnCanvas: canvas depthLimit: 4000. "super big number"
+	^ self toRSCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
 	
 ]
 
