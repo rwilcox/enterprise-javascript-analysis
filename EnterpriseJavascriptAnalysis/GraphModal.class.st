@@ -83,7 +83,7 @@ GraphModal class >> withName: inName make: blockWillBeCalledWithConstructedObjec
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Roassal }
 GraphModal >> asRSCompositeShape [
 	| output box rslabel |
 	rslabel := RSLabel new text: name yourself.
@@ -100,7 +100,7 @@ GraphModal >> asRSCompositeShape [
 	^ output
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Roassal }
 GraphModal >> asRTCompositeShape [
 	| rslabel output outModal box |
 	
@@ -150,6 +150,37 @@ GraphModal >> gtDisplayOn: stream [
 	^ self name printOn: stream.
 ]
 
+{ #category : #'as yet unclassified' }
+GraphModal >> gtInspectorSubtopicsIn: composite [
+	"comment stating purpose of instance-side message"
+	"scope: class-variables  &  instance-variables"	
+			
+	<gtInspectorPresentationOrder: 1000>
+	
+	composite roassal3 
+	  title: 'Graph';
+	  initializeCanvas: [ |canvas|
+	    canvas := RSCanvas new.
+	    canvas @ RSCanvasController.
+	    self toRSCompositeOnCanvas: canvas.
+	    self layoutOnCanvas: canvas.
+	
+	    canvas.
+	  ].
+]
+
+{ #category : #Roassal }
+GraphModal >> layoutOnCanvas: canvas [
+	"Subclasses could redefine this if you prefer another layout.
+	 This current impl tries to be smart for what version of Roassal you have.
+	"
+	|cls|
+	cls := Smalltalk at: ('RSDominanceTreeLayout' asSymbol) ifAbsent: [ 
+		Smalltalk at: ('RTDominanceTreeLayout' asSymbol) ] .		
+				
+	cls new on: (canvas nodes).
+]
+
 { #category : #accessing }
 GraphModal >> name [
 	^ name
@@ -160,7 +191,7 @@ GraphModal >> name: anObject [
 	name := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Roassal }
 GraphModal >> toRSCompositeOnCanvas: canvas [
 	| output childrenNodes |
 	
@@ -179,7 +210,7 @@ GraphModal >> toRSCompositeOnCanvas: canvas [
 	^ output
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Roassal }
 GraphModal >> toRTCompositeOnCanvas: canvas [
 	"version of toRSCompositeOnCanvas but for Roassal2 (not 3)"
 

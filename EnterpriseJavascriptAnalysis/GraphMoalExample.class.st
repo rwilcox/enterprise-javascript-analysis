@@ -16,7 +16,7 @@ GraphMoalExample class >> displayedInAGraph [
 	canvas @ RSCanvasController.
 	
 	out toRSCompositeOnCanvas: canvas.
-	RSTreeLayout  new on: (canvas nodes).
+	"RSDominanceTreeLayout   new on: (canvas nodes)."
 	
 	^ canvas. 
 
