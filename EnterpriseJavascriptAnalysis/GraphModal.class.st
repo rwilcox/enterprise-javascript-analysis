@@ -157,7 +157,7 @@ GraphModal >> gtDisplayOn: stream [
 	^ self name printOn: stream.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #GTInspector }
 GraphModal >> gtInspectorSubtopicsIn: composite [
 	"comment stating purpose of instance-side message"
 	"scope: class-variables  &  instance-variables"	
@@ -170,7 +170,7 @@ GraphModal >> gtInspectorSubtopicsIn: composite [
 
 ]
 
-{ #category : #Roassal }
+{ #category : #GTInspector }
 GraphModal >> gtInspectoryOnRoassal2: composite [
 	"comment stating purpose of message"
 
@@ -180,14 +180,14 @@ GraphModal >> gtInspectoryOnRoassal2: composite [
 	      canvas := RTView new.
 	      canvas @ RTDraggableView.
 	      "canvas add: (self asRTCompositeShape )."
-	      self toRTCompositeOnCanvas: canvas depthLimit: 2.
+	      self toRTCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
 	      self layoutOnCanvas: canvas.
 	
 	      canvas.
       ].
 ]
 
-{ #category : #Roassal }
+{ #category : #GTInspector }
 GraphModal >> gtInspectoryOnRoassal3: composite [
 	composite roassal3 
 	    title: 'Graph';
@@ -256,7 +256,7 @@ GraphModal >> toRTCompositeOnCanvas: canvas [
  
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Roassal }
 GraphModal >> toRTCompositeOnCanvas: canvas depthLimit: currentLimit [
 	"comment stating purpose of message"
 
