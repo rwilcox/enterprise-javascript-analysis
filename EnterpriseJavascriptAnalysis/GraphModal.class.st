@@ -225,6 +225,13 @@ GraphModal >> toRSCompositeOnCanvas: canvas depthLimit: curentLimit [
 { #category : #Roassal }
 GraphModal >> toRTCompositeOnCanvas: canvas [
 	"version of toRSCompositeOnCanvas but for Roassal2 (not 3)"
+   ^ self toRTCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
+ 
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal >> toRTCompositeOnCanvas: canvas depthLimit: currentLimit [
+	"comment stating purpose of message"
 
 	| outModal childrenNodes |
 	"extent: rslabel extent + 10;"
@@ -232,13 +239,16 @@ GraphModal >> toRTCompositeOnCanvas: canvas [
 	"output add: box."
 	outModal := self asRTCompositeShape.
 	canvas add: outModal.
-	self children
+	
+	(currentLimit > 0) ifTrue: [ 
+	  self children
 		ifNotNil: [ childrenNodes := self children
 				collect: [ :curr | 
 					| childShape line |
-					childShape := curr toRTCompositeOnCanvas: canvas.
+					childShape := curr toRTCompositeOnCanvas: canvas depthLimit: (currentLimit - 1).
 					line := RTEdge from: outModal to: childShape.
 					line + (RTLine new color: Color black) + RTSimpleArrowHead new.
 					canvas add: line ] ].
+	].
 	^ outModal
 ]
