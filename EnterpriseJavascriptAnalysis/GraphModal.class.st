@@ -132,6 +132,13 @@ GraphModal >> children: anObject [
 	children := anObject
 ]
 
+{ #category : #Roassal }
+GraphModal >> defaultDepthLimit [
+	"subclasses may want to override me to control how much of graph is shown at once (how double-clickable it is)"
+			
+	^ 4000. "pick a very large number"
+]
+
 { #category : #accessing }
 GraphModal >> externalRef [
 	^ externalRef
@@ -162,7 +169,7 @@ GraphModal >> gtInspectorSubtopicsIn: composite [
 	  initializeCanvas: [ |canvas|
 	    canvas := RSCanvas new.
 	    canvas @ RSCanvasController.
-	    self toRSCompositeOnCanvas: canvas.
+	    self toRSCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
 	    self layoutOnCanvas: canvas.
 	
 	    canvas.
@@ -193,20 +200,25 @@ GraphModal >> name: anObject [
 
 { #category : #Roassal }
 GraphModal >> toRSCompositeOnCanvas: canvas [
-	| output childrenNodes |
+	^ self toRSCompositeOnCanvas: canvas depthLimit: 4000. "super big number"
 	
+]
+
+{ #category : #Roassal }
+GraphModal >> toRSCompositeOnCanvas: canvas depthLimit: curentLimit [
+	| output childrenNodes |
 	output := self asRSCompositeShape.
 	canvas add: output.
 	
-	self children
-		ifNotNil: [ childrenNodes := self children
-				collect: [ :curr | 
-					| childShape line |
-					childShape := curr toRSCompositeOnCanvas: canvas.
+	(curentLimit > 0) ifTrue: [  
+	  self children ifNotNil: [ 
+		  childrenNodes := self children collect: [ :curr | | childShape line |
+					childShape := curr toRSCompositeOnCanvas: canvas depthLimit: (curentLimit -1).
 					line := RSLine new
 						from: childShape;
 						to: output.
 					canvas add: line ] ].
+	].
 	^ output
 ]
 

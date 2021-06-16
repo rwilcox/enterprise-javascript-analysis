@@ -15,8 +15,8 @@ GraphMoalExample class >> displayedInAGraph [
 	canvas := RSCanvas new.
 	canvas @ RSCanvasController.
 	
-	out toRSCompositeOnCanvas: canvas.
-	"RSDominanceTreeLayout   new on: (canvas nodes)."
+	out toRSCompositeOnCanvas: canvas depthLimit: 1.
+	RSDominanceTreeLayout   new on: (canvas nodes).
 	
 	^ canvas. 
 
@@ -31,7 +31,9 @@ GraphMoalExample class >> dslExample [
 	
 	out := GraphModal withName: 'making a sandwhich' andChildren: { 
 	  GraphModal withName: 'gather things' andChildren: { 
-	    GraphModal withName: 'get bread'. 
+	    GraphModal withName: 'get bread' andChildren: {
+	      GraphModal withName: 'shut the breadbox door too!'
+	    }. 
 	    (GraphModal withName: 'get peanut butter') externalRef: 'in the cupboard)'; yourself.
 	    GraphModal withName: 'get jam'.
 	  }.
