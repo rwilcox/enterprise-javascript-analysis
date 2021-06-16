@@ -163,16 +163,41 @@ GraphModal >> gtInspectorSubtopicsIn: composite [
 	"scope: class-variables  &  instance-variables"	
 			
 	<gtInspectorPresentationOrder: 1000>
+
+	(composite respondsTo: #roassal3) 
+	  ifTrue:  [ self gtInspectoryOnRoassal3: composite ]
+	  ifFalse: [ self gtInspectoryOnRoassal2: composite ].
+
+]
+
+{ #category : #Roassal }
+GraphModal >> gtInspectoryOnRoassal2: composite [
+	"comment stating purpose of message"
+
+    composite roassal2 
+	    title: 'Graph';
+	    initializeView: [ |canvas|
+	      canvas := RTView new.
+	      canvas @ RTDraggableView.
+	      "canvas add: (self asRTCompositeShape )."
+	      self toRTCompositeOnCanvas: canvas depthLimit: 2.
+	      self layoutOnCanvas: canvas.
 	
+	      canvas.
+      ].
+]
+
+{ #category : #Roassal }
+GraphModal >> gtInspectoryOnRoassal3: composite [
 	composite roassal3 
-	  title: 'Graph';
-	  initializeCanvas: [ |canvas|
-	    canvas := RSCanvas new.
-	    canvas @ RSCanvasController.
-	    self toRSCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
-	    self layoutOnCanvas: canvas.
+	    title: 'Graph';
+	    initializeCanvas: [ |canvas|
+	      canvas := RSCanvas new.
+	      canvas @ RSCanvasController.
+	      self toRSCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
+	      self layoutOnCanvas: canvas.
 	
-	    canvas.
+	      canvas.
 	  ].
 ]
 
@@ -181,11 +206,13 @@ GraphModal >> layoutOnCanvas: canvas [
 	"Subclasses could redefine this if you prefer another layout.
 	 This current impl tries to be smart for what version of Roassal you have.
 	"
-	|cls|
+	|cls nodes|
+	
+	nodes := (canvas respondsTo: #nodes) ifTrue: [ canvas nodes ] ifFalse: [ canvas elements ].
 	cls := Smalltalk at: ('RSDominanceTreeLayout' asSymbol) ifAbsent: [ 
-		Smalltalk at: ('RTDominanceTreeLayout' asSymbol) ] .		
+		Smalltalk at: ('RTHorizontalFlowLayout' asSymbol) ] .		
 				
-	cls new on: (canvas nodes).
+	cls new on: nodes.
 ]
 
 { #category : #accessing }
