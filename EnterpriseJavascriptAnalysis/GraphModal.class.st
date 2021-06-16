@@ -84,6 +84,23 @@ GraphModal class >> withName: inName make: blockWillBeCalledWithConstructedObjec
 ]
 
 { #category : #'as yet unclassified' }
+GraphModal >> asRSCompositeShape [
+	| output box rslabel |
+	rslabel := RSLabel new text: name yourself.
+	box := RSBox new
+		withBorder;
+		extent: rslabel extent + 10;
+		color: Color white.
+	output := RSComposite new
+		draggable;
+		model: self;
+		shapes:
+			{box.
+			rslabel}.
+	^ output
+]
+
+{ #category : #'as yet unclassified' }
 GraphModal >> asRTCompositeShape [
 	| rslabel output outModal box |
 	
@@ -144,26 +161,22 @@ GraphModal >> name: anObject [
 ]
 
 { #category : #'as yet unclassified' }
-GraphModal >> toRSCompositeOnCanvas: canvas [ 
-	| rslabel box output childrenNodes|
+GraphModal >> toRSCompositeOnCanvas: canvas [
+	| output childrenNodes |
 	
-	rslabel := RSLabel new text: name yourself.
-	box := RSBox new withBorder; extent: rslabel extent + 10; color: (Color white).
-	
-	output := RSComposite new draggable;
-	model: self; shapes: {  box. rslabel }.
+	output := self asRSCompositeShape.
 	canvas add: output.
 	
-	self children ifNotNil: [  
-	  childrenNodes := self children collect: [ :curr |  | childShape line|
-		
-		childShape := curr toRSCompositeOnCanvas: canvas.
-		line := RSLine new from: childShape; to: output.
-		canvas add: line.
-	  ].
-	  	
-	].
-  ^output. 
+	self children
+		ifNotNil: [ childrenNodes := self children
+				collect: [ :curr | 
+					| childShape line |
+					childShape := curr toRSCompositeOnCanvas: canvas.
+					line := RSLine new
+						from: childShape;
+						to: output.
+					canvas add: line ] ].
+	^ output
 ]
 
 { #category : #'as yet unclassified' }
