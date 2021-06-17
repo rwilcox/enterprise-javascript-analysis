@@ -57,14 +57,14 @@ GraphModal class >> withName: inName childContext: resultsFromThisBlockWillBeAdd
 ]
 
 { #category : #'as yet unclassified' }
-GraphModal class >> withName: inName childen: children andExternalRef: exRef [
+GraphModal class >> withName: inName children: children andExternalRef: exRef [
 	"comment stating purpose of class-side message"
 	"scope: class-variables  &  class-instance-variables"	
 			
 	| out |
 	
    out := self new.
-   out name: name
+   out name: inName.
    out children: children.
    out externalRef: exRef.
 

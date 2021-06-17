@@ -29,24 +29,34 @@ GraphMoalExample class >> dslExample [
 	<sampleInstance>	
 	| out |
 	
-	out := GraphModal withName: 'making a sandwhich' andChildren: { 
-	  GraphModal withName: 'gather things' andChildren: { 
-	    GraphModal withName: 'get bread' andChildren: {
-	      GraphModal withName: 'shut the breadbox door too!'
-	    }. 
-	    (GraphModal withName: 'get peanut butter') externalRef: 'in the cupboard)'; yourself.
-	    GraphModal withName: 'get jam'.
+	out := GraphModal withName: 'Cloud Migration' andChildren: { 
+	  GraphModal withName: 'Provision AWS Infrastructure (INFRA-RFC-1)' andChildren: { 
+	    GraphModal withName: 'Provision VPCs, ELBs (Epic)' andChildren: { 
+	      GraphModal withName: 'Provision VPC (2x)'.
+	      GraphModal withName: 'Provision ELBs (2b)'.
+	    }.
+	    GraphModal withName: 'Provision EC2 instances (Epic)' childContext: [ |foo|
+		   foo := GraphModal withName: 'create, provisision AMI'.
+		   { foo. GraphModal withName: 'IaC provision ASG, ELB connection' }
+		 ].
 	  }.
 	
-	  GraphModal withName: 'build sandwich' make: [ :sandwich | |peanutButter jam|
-		"there is an escape valve for when declarative just isn't working"
-		
-		peanutButter := GraphModal withName: 'spread peanut butter on one slice of bread'.
-		jam          := GraphModal withName: 'spread jam on other slice of bread'.
-		
-		sandwich children: { peanutButter . jam }.
-	  ].  
-	}.
+	  GraphModal withName: 'Data migration (INFRA-RFC-2)' children: { 
+	    GraphModal withName: 'DMS connections to current databases'.
+	    GraphModal withName: 'RDS instances configured viga IaC'.
+	  } andExternalRef: 'INFRA-RFC-2'.
+	
+	  GraphModal withName: 'Migrate FancyService (DEV-RFC-1)' andChildren: { 
+	    GraphModal withName: 'migrate secrets -> AWS Secrets Manager'.
+	    (GraphModal withName: 'Adopt 12 factor app princples') externalRef: 'DEV-112'; yourself.
+	    GraphModal withName: 'containerize' andChildren: { 
+	      GraphModal withName: 'get really good at Docker' andChildren: {
+	         GraphModal withName: 'brown bag lunch with that Udemy video'.
+	      }.
+	      GraphModal withName: 'security scan the base container'.
+	    }.
+	  }. 
+ 	}.
 	
 	^ out.
 	 
