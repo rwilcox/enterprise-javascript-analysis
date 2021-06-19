@@ -72,7 +72,7 @@ GraphMoalExample class >> listOnlyItemsWithExternalRefs [
 	Which wil be out of hierarctical order, and since items are only singly linked, no way to reconstruct the object
 	graph structure from that point. This likely better be an accompying piece of documentation."
 	<sampleInstance>	
-	| dslExampeGraph behavior itemsWithExternalRefs|
+	| dslExampeGraph behavior itemsWithExternalRefs outputStr|
 	itemsWithExternalRefs := OrderedCollection new.
 	
 	dslExampeGraph := GraphMoalExample dslExample .
@@ -81,6 +81,16 @@ GraphMoalExample class >> listOnlyItemsWithExternalRefs [
   dslExampeGraph walk: [ :currItem |
 	currItem externalRef ifNotNil: [ itemsWithExternalRefs add: currItem.]. 
 	].
+  
+  outputStr := String new writeStream .
+  outputStr << '||name||reference||'.
+  outputStr << String cr.
+  itemsWithExternalRefs do: [ :currItem |
+	 outputStr << '|'; << currItem name.
+	 outputStr << '|'; << currItem externalRef.
+	  outputStr << '|'; << String cr.
+  ].  
 
-  ^ itemsWithExternalRefs .
+  ^ outputStr contents.
+  "^ itemsWithExternalRefs ."
 ]
