@@ -15,8 +15,7 @@ GraphMoalExample class >> displayedInAGraph [
 	canvas := RSCanvas new.
 	canvas @ RSCanvasController.
 	
-	out toRSCompositeOnCanvas: canvas depthLimit: 1.
-	RSDominanceTreeLayout   new on: (canvas nodes).
+	out toRSCompositeWithLayoutOnCanvas: canvas depthLimit: 1.
 	
 	^ canvas. 
 

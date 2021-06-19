@@ -22,7 +22,8 @@ Class {
 		'name',
 		'externalRef',
 		'children',
-		'cachedCompositeShape'
+		'cachedCompositeShape',
+		'currentBehaviorAspect'
 	],
 	#category : #EnterpriseJavascriptAnalysis
 }
@@ -83,6 +84,25 @@ GraphModal class >> withName: inName make: blockWillBeCalledWithConstructedObjec
 
 ]
 
+{ #category : #'aspect handling' }
+GraphModal >> _aspectDispatchIsToSelf: inSelectorWithContext [
+	"comment stating purpose of instance-side message"
+	"scope: class-variables  &  instance-variables"	
+	
+	|m| 
+   currentBehaviorAspect ifNil: [ ^true ]. "guard, no behavior aspect"
+
+   m := (currentBehaviorAspect class) lookupSelector: inSelectorWithContext. "guard, not there in the behavior aspect"
+   m ifNil: [ ^true ].
+  
+	(m pragmas) detect: [ :currentPragma |
+         (currentPragma selector) = #unimplemented 
+       ]
+   ifFound: [ :_ | ^true ]. "guard, it is flagged as unimplemented"
+
+   ^ false.
+]
+
 { #category : #Roassal }
 GraphModal >> asRSCompositeShape [
 	| output box rslabel |
@@ -122,6 +142,54 @@ GraphModal >> asRTCompositeShape [
 
 ]
 
+{ #category : #'aspect handling' }
+GraphModal >> aspectContentFor: inSelector [
+	"If the current aspect for this instance has an implemented version of inSelector, call it and return result
+	Elsewise, call our own implementation directly, returning result.
+	
+	Buckle up, losers."
+
+   |selectorWithContext parameterCollection|
+
+   selectorWithContext := (inSelector , 'inContext:') asSymbol .
+   
+  (self _aspectDispatchIsToSelf: selectorWithContext) ifTrue: [ 
+    ^ self perform: inSelector
+	]
+   ifFalse:  [ 
+	  "it WAS found, was NOT marked as unimplemented, which means the author wants us to use it. Do so."
+		parameterCollection := OrderedCollection newFrom: { self }.
+		^ currentBehaviorAspect perform: selectorWithContext  withArguments: (parameterCollection asArray).
+	].
+
+
+
+
+]
+
+{ #category : #'aspect handling' }
+GraphModal >> aspectContentFor: inSelector withParameters: inParams [
+	"See aspectContentFor:"
+	"scope: class-variables  &  instance-variables"	
+			
+	| selectorWithContext withContextParameters|
+	withContextParameters := OrderedCollection newFrom: inParams.
+	withContextParameters add: self.
+	
+   selectorWithContext := (inSelector , 'inContext:') asSymbol .
+   
+  (self _aspectDispatchIsToSelf: selectorWithContext) ifTrue: [ 
+    ^ self perform: inSelector withArguments: inParams
+	]
+   ifFalse:  [ 
+	  "it WAS found, was NOT marked as unimplemented, which means the author wants us to use it. Do so."
+		^ currentBehaviorAspect perform: selectorWithContext  withArguments: (withContextParameters asArray).
+	].
+
+
+
+]
+
 { #category : #accessing }
 GraphModal >> children [
 	^ children
@@ -130,6 +198,11 @@ GraphModal >> children [
 { #category : #accessing }
 GraphModal >> children: anObject [
 	children := anObject
+]
+
+{ #category : #accessing }
+GraphModal >> currentBehaviorAspect [
+	^ currentBehaviorAspect.
 ]
 
 { #category : #Roassal }
@@ -147,6 +220,14 @@ GraphModal >> externalRef [
 { #category : #accessing }
 GraphModal >> externalRef: anObject [
 	externalRef := anObject
+]
+
+{ #category : #GTInspector }
+GraphModal >> gtDefaultDepthLimit [
+	"comment stating purpose of instance-side message"
+	"scope: class-variables  &  instance-variables"	
+			
+	^ 4.
 ]
 
 { #category : #printing }
@@ -180,7 +261,7 @@ GraphModal >> gtInspectoryOnRoassal2: composite [
 	      canvas := RTView new.
 	      canvas @ RTDraggableView.
 	      "canvas add: (self asRTCompositeShape )."
-	      self toRTCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
+	      self toRTCompositeOnCanvas: canvas depthLimit: (self aspectContentFor: #gtDefaultDepthLimit ).
 	      self layoutOnCanvas: canvas.
 	
 	      canvas.
@@ -194,11 +275,26 @@ GraphModal >> gtInspectoryOnRoassal3: composite [
 	    initializeCanvas: [ |canvas|
 	      canvas := RSCanvas new.
 	      canvas @ RSCanvasController.
-	      self toRSCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
+	      self toRSCompositeOnCanvas: canvas depthLimit: (self aspectContentFor: #gtDefaultDepthLimit ).
 	      self layoutOnCanvas: canvas.
 	
 	      canvas.
 	  ].
+]
+
+{ #category : #'aspect handling' }
+GraphModal >> injectAspectBehavior: aspect [
+	"For the current instance, and every child object in its graph, infect it with the given aspect.
+	
+	Through this, starting at the root node, the entire graph can be infected."	
+			
+	currentBehaviorAspect := aspect.
+	
+	(self children) ifNotNil: [ 
+     self children do: [ :currentChild |
+	    currentChild injectAspectBehavior: aspect.
+	  ].
+   ].
 ]
 
 { #category : #Roassal }
@@ -227,19 +323,20 @@ GraphModal >> name: anObject [
 
 { #category : #Roassal }
 GraphModal >> toRSCompositeOnCanvas: canvas [
-	^ self toRSCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
+	^ self toRSCompositeOnCanvas: canvas depthLimit: (self aspectContentFor: #defaultDepthLimit).
 	
 ]
 
 { #category : #Roassal }
 GraphModal >> toRSCompositeOnCanvas: canvas depthLimit: curentLimit [
-	| output childrenNodes |
+	| output childrenGraphs childrenNodes |
 	output := self asRSCompositeShape.
 	canvas add: output.
 	
-	(curentLimit > 0) ifTrue: [  
-	  self children ifNotNil: [ 
-		  childrenNodes := self children collect: [ :curr | | childShape line |
+	(curentLimit > 0) ifTrue: [ 
+	  childrenGraphs := (self aspectContentFor: #children).	
+	  childrenGraphs ifNotNil: [ 
+		  childrenNodes := childrenGraphs collect: [ :curr | | childShape line |
 					childShape := curr toRSCompositeOnCanvas: canvas depthLimit: (curentLimit -1).
 					line := RSLine new
 						from: childShape;
@@ -250,9 +347,22 @@ GraphModal >> toRSCompositeOnCanvas: canvas depthLimit: curentLimit [
 ]
 
 { #category : #Roassal }
+GraphModal >> toRSCompositeWithLayoutOnCanvas: canvas depthLimit: limit [
+	"This performs the layout for you, in addition to setting up the graph. (It also will dispatch to a behaviorAspect if you have one set up"
+	"scope: class-variables  &  instance-variables"	
+			
+  |out|
+
+  out := self toRSCompositeOnCanvas: canvas depthLimit: limit.
+  self aspectContentFor: #layoutOnCanvas: withParameters: { canvas }.
+
+  ^out.
+]
+
+{ #category : #Roassal }
 GraphModal >> toRTCompositeOnCanvas: canvas [
 	"version of toRSCompositeOnCanvas but for Roassal2 (not 3)"
-   ^ self toRTCompositeOnCanvas: canvas depthLimit: (self defaultDepthLimit).
+   ^ self toRTCompositeOnCanvas: canvas depthLimit: (self aspectContentFor: #defaultDepthLimit).
  
 ]
 
@@ -260,7 +370,7 @@ GraphModal >> toRTCompositeOnCanvas: canvas [
 GraphModal >> toRTCompositeOnCanvas: canvas depthLimit: currentLimit [
 	"comment stating purpose of message"
 
-	| outModal childrenNodes |
+	| outModal childrenGraphs childrenNodes |
 	"extent: rslabel extent + 10;"
 	"color: (Color white)"
 	"output add: box."
@@ -268,9 +378,10 @@ GraphModal >> toRTCompositeOnCanvas: canvas depthLimit: currentLimit [
 	canvas add: outModal.
 	
 	(currentLimit > 0) ifTrue: [ 
-	  self children
-		ifNotNil: [ childrenNodes := self children
-				collect: [ :curr | 
+		childrenGraphs := (self aspectContentFor: #children).
+		
+	  childrenGraphs ifNotNil: [ 
+		childrenNodes := childrenGraphs collect: [ :curr | 
 					| childShape line |
 					childShape := curr toRTCompositeOnCanvas: canvas depthLimit: (currentLimit - 1).
 					line := RTEdge from: outModal to: childShape.
@@ -278,4 +389,17 @@ GraphModal >> toRTCompositeOnCanvas: canvas depthLimit: currentLimit [
 					canvas add: line ] ].
 	].
 	^ outModal
+]
+
+{ #category : #Roassal }
+GraphModal >> toRTCompositeWithLayoutOnCanvas: canvas depthLimit: limit [
+	"This performs the layout for you, in addition to setting up the graph. (It also will dispatch to a behaviorAspect if you have one set up"
+	"scope: class-variables  &  instance-variables"	
+			
+  |out|
+
+  out := self toRTCompositeOnCanvas: canvas depthLimit: limit.
+  self aspectContentFor: #layoutOnCanvas: withParameters: { canvas }.
+
+  ^out.
 ]
