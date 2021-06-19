@@ -78,7 +78,7 @@ GraphModalBaseAspect >> defaultDepthLimitinContext: context [
 	^ 57.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'aspect implementations' }
 GraphModalBaseAspect >> gtDefaultDepthLimitinContext: context [
 	"comment stating purpose of instance-side message"
 	"scope: class-variables  &  instance-variables"	

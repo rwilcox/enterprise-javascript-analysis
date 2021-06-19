@@ -290,6 +290,7 @@ GraphModal >> injectAspectBehavior: aspect [
 			
 	currentBehaviorAspect := aspect.
 	
+	"do NOT use the behavior aspect here, we want a list of ALL children regardless of what lens we have."
 	(self children) ifNotNil: [ 
      self children do: [ :currentChild |
 	    currentChild injectAspectBehavior: aspect.
@@ -402,4 +403,19 @@ GraphModal >> toRTCompositeWithLayoutOnCanvas: canvas depthLimit: limit [
   self aspectContentFor: #layoutOnCanvas: withParameters: { canvas }.
 
   ^out.
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal >> walk: blockCalledForCurrentItem [
+	"Once for this object and "
+	"scope: class-variables  &  instance-variables"	
+	
+	|selfChildren|		
+	blockCalledForCurrentItem value: self.
+	
+	selfChildren := (self aspectContentFor: #children).
+	selfChildren  ifNotNil: [ 
+	  	selfChildren do: [ :currChild | currChild walk: blockCalledForCurrentItem  ]
+	].
+	
 ]

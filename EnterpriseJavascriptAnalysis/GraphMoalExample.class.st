@@ -60,3 +60,27 @@ GraphMoalExample class >> dslExample [
 	^ out.
 	 
 ]
+
+{ #category : #'as yet unclassified' }
+GraphMoalExample class >> listOnlyItemsWithExternalRefs [
+	"this is interesting, because question: if a dependency has a external ref but
+	none of its parents do, do we show it?
+	
+	The answer is yes. So we iterate all children normally, and if there's a child when an
+	external reference add it to an array on the side. Then after traversal, return ONLY the array on the side.
+	
+	Which wil be out of hierarctical order, and since items are only singly linked, no way to reconstruct the object
+	graph structure from that point. This likely better be an accompying piece of documentation."
+	<sampleInstance>	
+	| dslExampeGraph behavior itemsWithExternalRefs|
+	itemsWithExternalRefs := OrderedCollection new.
+	
+	dslExampeGraph := GraphMoalExample dslExample .
+   behavior := GraphModalOnlyItemsWithExternalRefsAspect new.
+   
+  dslExampeGraph walk: [ :currItem |
+	currItem externalRef ifNotNil: [ itemsWithExternalRefs add: currItem.]. 
+	].
+
+  ^ itemsWithExternalRefs .
+]
