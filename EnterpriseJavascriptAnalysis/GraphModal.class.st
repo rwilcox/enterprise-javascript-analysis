@@ -14,6 +14,22 @@ t := GraphModal withName: 'Travel' andChildren: {
  }
 
 It also gives the ability to graph this...
+
+But ""children"" is a very confusing word: what way is the graph drawn? So we have synomyms that should make it clearer
+
+In fact, the above example played fast and loose with ordering!!!
+
+|t|
+
+t := GraphModel withName: 'Travel' composedOfTasks: { 
+  GraphModel withName: 'pack suitcase' composedOfTasks: { 
+    GraphModel withName: 'find suitcase'.
+  }.
+  GraphModel withName: 'buy tickets' composedOfTasks: { 
+    GraphModel withName: 'find wallet'.
+    GraphModel withName: 'enter credit card (found in wallet) on website'.
+  }
+}.
 "
 Class {
 	#name : #GraphModal,
@@ -73,6 +89,11 @@ GraphModal class >> withName: inName children: children andExternalRef: exRef [
 ]
 
 { #category : #'as yet unclassified' }
+GraphModal class >> withName: inName composedOfTasks: tasks [
+	^ self withName: inName andChildren: tasks.
+]
+
+{ #category : #'as yet unclassified' }
 GraphModal class >> withName: inName make: blockWillBeCalledWithConstructedObject [
 	"comment stating purpose of message"
 
@@ -82,6 +103,16 @@ GraphModal class >> withName: inName make: blockWillBeCalledWithConstructedObjec
 	blockWillBeCalledWithConstructedObject value: out.
 	^ out.
 
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal class >> withName: inName taskContext: inContext [
+	^ self withName: inName childContext: inContext.
+]
+
+{ #category : #'as yet unclassified' }
+GraphModal class >> withName: inName tasks: inTasks andExternalRef: ref [
+	^ self withName: inName children: inTasks andExternalRef: ref.
 ]
 
 { #category : #'aspect handling' }
@@ -320,6 +351,18 @@ GraphModal >> name [
 { #category : #accessing }
 GraphModal >> name: anObject [
 	name := anObject
+]
+
+{ #category : #accessing }
+GraphModal >> tasks [
+	^ children.
+]
+
+{ #category : #accessing }
+GraphModal >> tasks: inTasks [
+	"A synonym for children to make things easier to understand"
+
+	self children: inTasks.
 ]
 
 { #category : #Roassal }
